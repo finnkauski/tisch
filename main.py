@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 #from tisch import Table
 
+# TODO: consider subclassing tags into custom tags - like rowgroup
 # TODO: add a - from config json so that someone can have a default json parameterisation of the pipeline
 
 MOCK_CSS = """
@@ -148,6 +149,16 @@ class Table:
         self.subtitle = self.tsoup.new_tag(html_tag, attrs=attrs)
         self.subtitle.string = text
 
+    def add_rowgroup(self, after_row):
+        row = self.tsoup.rows[after_row]
+        td = self.tsoup.new_tag("td", colspan=len(row.select("td")))
+        # TODO: to just keep the height of the row correct
+        # TODO: this isn't a great solution
+        td.string = "⠀"
+        row_group = self.tsoup.new_tag("tr")
+        row_group.append(td)
+        row.insert_after(row_group)
+
     def embed_css(self, css=None, filepath=None):
         self.css = self.tsoup.new_tag("style")
         if css:
@@ -201,5 +212,7 @@ table = Table(data)
 table.add_title("This is my table")
 table.add_subtitle("My subtitle")
 table.merge_cells([(0, 2), (0,3), (0,4), (0,5), (0,6), (0,7), (0,8)], keep_value=6)
-table.tsoup[0,0].string = "Testing assignment"
+table.add_rowgroup(2)
+table.add_rowgroup(5)
+table.add_rowgroup(8)
 table.to_html("name.html")
