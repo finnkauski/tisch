@@ -1,6 +1,6 @@
 # Tisch
 
-<img src="logo.svg">
+<img height="200px" src="logo.svg">
 
 This simple library solves a very specific problem
 
