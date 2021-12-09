@@ -1,5 +1,7 @@
 # Tisch
 
+<img src="logo.svg">
+
 This simple library solves a very specific problem
 
 > How do I quickly format and publish tables from a dataframe?
