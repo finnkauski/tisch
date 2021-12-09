@@ -149,12 +149,16 @@ class Table:
         self.subtitle = self.tsoup.new_tag(html_tag, attrs=attrs)
         self.subtitle.string = text
 
-    def add_rowgroup(self, after_row):
+    def add_rowgroup(self, after_row, text=None):
         row = self.tsoup.rows[after_row]
-        td = self.tsoup.new_tag("td", colspan=len(row.select("td")))
+        attrs = {
+            "colspan":len(row.select("td")),
+            "class":"rowgroup"
+        }
+        td = self.tsoup.new_tag("td", attrs=attrs)
         # TODO: to just keep the height of the row correct
         # TODO: this isn't a great solution
-        td.string = "⠀"
+        td.string = "⠀" if not text else text
         row_group = self.tsoup.new_tag("tr")
         row_group.append(td)
         row.insert_after(row_group)
@@ -196,8 +200,6 @@ class Table:
             for merge in self.merge_operations:
                 merge.apply()
 
-
-
     def to_html(self, filepath):
         # TODO: maybe this should have the default settings for the setup
         # and the setup only happens after this is called
@@ -215,4 +217,5 @@ table.merge_cells([(0, 2), (0,3), (0,4), (0,5), (0,6), (0,7), (0,8)], keep_value
 table.add_rowgroup(2)
 table.add_rowgroup(5)
 table.add_rowgroup(8)
+table.embed_css(filepath="test.css")
 table.to_html("name.html")
