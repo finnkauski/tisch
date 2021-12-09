@@ -31,6 +31,12 @@ class MergeCells(Operation):
         self.cells = cells
         self.keep_value = keep_value
 
+        # confirm that the keep value is within the range
+        if self.keep_value < 0 or self.keep_value >= len(self.cells):
+            raise ValueError("Your keep value is not within the range of the cells you're merging.")
+
+
+
     def apply(self):
         # NOTE: this can change the state of the table, if you are getting
         # changes to your table and unsure where its coming from, consider this
@@ -46,7 +52,6 @@ class MergeCells(Operation):
             if cell[0] != i:
                 raise ValueError("Could not merge cells across multiple rows. Unsupported for now.")
 
-
         row = self.cells[0][0]
         row = self.table.tsoup[row]
         # TODO: maybe specifying this in spans would make more sense as the implementation is heading
@@ -57,7 +62,7 @@ class MergeCells(Operation):
         key = lambda t: t[1]
         ordered = sorted(self.cells, key=key)
 
-        value = "" if not self.keep_value else row[ordered[self.keep_value][1]].string
+        value = "" if self.keep_value is None else row[ordered[self.keep_value][1]].string
 
         starting_col = row[min(ordered, key=key)[1]]
         starting_col["colspan"] = len(self.cells)
@@ -175,8 +180,12 @@ class Table:
             print("No css provided and hence nothing was embedded")
 
 
-    def merge_cells(self, cells=[], keep_value=None):
+    def merge_cells(self, row, first, last, keep_value=None):
         # TODO: need to add validation to make sure cells are adjascent
+        # TODO: avoid this kind of thing, implement this in the mergecells
+        cells = list(range(first, last+1))
+        cells = list(zip([row]*len(cells), cells))
+
         self.merge_operations.append(MergeCells(cells, self, keep_value))
 
     def reset(self, what=None):
@@ -213,7 +222,7 @@ data = pd.read_csv("https://people.sc.fsu.edu/~jburkardt/data/csv/cities.csv")
 table = Table(data)
 table.add_title("This is my table")
 table.add_subtitle("My subtitle")
-table.merge_cells([(0, 2), (0,3), (0,4), (0,5), (0,6), (0,7), (0,8)], keep_value=6)
+table.merge_cells(0, 2, 5, keep_value=2)
 table.add_rowgroup(2)
 table.add_rowgroup(5)
 table.add_rowgroup(8)
