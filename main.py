@@ -3,18 +3,12 @@ from bs4 import BeautifulSoup as Soup
 
 from abc import ABC, abstractmethod
 
-#from tisch import Table
 
 # TODO: consider subclassing tags into custom tags - like rowgroup
 # TODO: add a - from config json so that someone can have a default json parameterisation of the pipeline
 
-MOCK_CSS = """
-body {
-    background: red;
-}
-
-"""
 HEADER_ATTRS = {"id":"header"}
+FOOTER_ATTRS = {"id":"footer"}
 TITLE_ATTRS = {"id":"title"}
 SUBTITLE_ATTRS = {"id":"subtitle"}
 
@@ -41,6 +35,7 @@ class MergeCells(Operation):
         # NOTE: this can change the state of the table, if you are getting
         # changes to your table and unsure where its coming from, consider this
         # as it can be working in place.
+        # TODO: refactor this into a function really.
 
         # temporary check to tell the user we only support merging rows for now
         check_row = False
@@ -119,11 +114,13 @@ class Table:
         self.data = pandas_df
         self._setup()
 
+
     def _setup(self):
 
         self.title = None
         self.subtitle = None
         self.css = None
+        self.source = None
 
         # Intialise this here as to not have the class list that stuff gets added
         # to. Common trap with mutable lists as defaults
@@ -137,14 +134,24 @@ class Table:
         self.header = self.tsoup.new_tag("div", attrs=HEADER_ATTRS)
         self.tsoup.insert(0, self.header)
 
+        # Add a container to contain the footer
+        self.footer = self.tsoup.new_tag("div", attrs=FOOTER_ATTRS)
+        self.tsoup.append(self.footer)
+
 
     def _frame_to_data_html(self, **kwargs):
         # TODO: unclear if this should sit in table soup
         self.data_html = self.data.to_html(border=0, index=False, **kwargs)
 
+    def add_source(self, text, html_tag="h3", attrs=TITLE_ATTRS):
+        self.source = self.tsoup.new_tag(html_tag, attrs=attrs)
+        self.source.string = text
+
+
     def add_title(self, text, html_tag="h1", attrs=TITLE_ATTRS):
         self.title = self.tsoup.new_tag(html_tag, attrs=attrs)
         self.title.string = text
+
 
     def add_subtitle(self, text, html_tag="h2", attrs=SUBTITLE_ATTRS):
         # TODO: could support direct tag addition rather than just text
@@ -153,6 +160,7 @@ class Table:
             raise ValueError("Could not find a title, add title using `.add_title` first.")
         self.subtitle = self.tsoup.new_tag(html_tag, attrs=attrs)
         self.subtitle.string = text
+
 
     def add_rowgroup(self, after_row, text=None):
         row = self.tsoup.rows[after_row]
@@ -167,6 +175,7 @@ class Table:
         row_group = self.tsoup.new_tag("tr")
         row_group.append(td)
         row.insert_after(row_group)
+
 
     def embed_css(self, css=None, filepath=None):
         self.css = self.tsoup.new_tag("style")
@@ -188,13 +197,16 @@ class Table:
 
         self.merge_operations.append(MergeCells(cells, self, keep_value))
 
+
     def reset(self, what=None):
         self._setup()
+
 
     def render(self):
         # add title
         if self.title:
             self.tsoup.select_one(f"#{self.header['id']}").insert(0, self.title)
+
 
         # add subtitle
         if self.title and self.subtitle:
@@ -204,10 +216,14 @@ class Table:
         if self.css:
             self.tsoup.insert(0, self.css)
 
+        if self.source:
+            self.tsoup.select_one(f"#{self.footer['id']}").insert(0, self.source)
+
         if self.merge_operations:
             # do the merges
             for merge in self.merge_operations:
                 merge.apply()
+
 
     def to_html(self, filepath):
         # TODO: maybe this should have the default settings for the setup
@@ -215,7 +231,6 @@ class Table:
         self.render()
         with open(filepath, "w+") as handle:
             handle.write(self.tsoup.prettify())
-
 
 
 data = pd.read_csv("https://people.sc.fsu.edu/~jburkardt/data/csv/cities.csv")
@@ -227,4 +242,5 @@ table.add_rowgroup(2)
 table.add_rowgroup(5)
 table.add_rowgroup(8)
 table.embed_css(filepath="test.css")
+table.add_source("Source: Data Science Campus")
 table.to_html("name.html")
