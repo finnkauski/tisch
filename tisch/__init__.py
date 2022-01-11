@@ -1,6 +1,9 @@
 # third party
 import pandas as pd
 
+# project
+from .exporters.html import HTMLExporter
+
 
 @pd.api.extensions.register_dataframe_accessor("tisch")
 class Table:
@@ -61,6 +64,10 @@ class Table:
 
     def reset(self):
         self._setup()
+
+    @property
+    def html(self):
+        return HTMLExporter(self)
 
     def __repr__(self):
         string = f"""Table:
