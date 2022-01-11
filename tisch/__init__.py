@@ -65,8 +65,12 @@ class Table:
     def reset(self):
         self._setup()
 
+    # TODO: could add an automatic way to register if a variable has changed.
+    # And if it has changed, then we need to regenerate the state.
     @property
     def html(self):
+        # TODO: can add a state tracker to make sure that whenever a variable
+        # is changed, only then it rerenders.
         return HTMLExporter(self)
 
     def __repr__(self):
