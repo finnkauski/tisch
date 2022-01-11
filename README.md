@@ -13,6 +13,9 @@ Goals:
 - simple API
 - easy extensibility
 
+Currently supported export formats:
+- HTML
+
 ## Example
 
 ```python
