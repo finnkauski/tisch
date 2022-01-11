@@ -11,10 +11,7 @@ This is useful for analysts aiming to quickly add formatting, titles, subtitles,
 Goals:
 
 - simple API
-- you know what you are getting formatting
-- formatting flexibility through CSS embedding
-- ability to merge cells
-- ability to style individual cells
+- easy extensibility
 
 ## Example
 
