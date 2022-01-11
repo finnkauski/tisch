@@ -64,13 +64,31 @@ class TableSoup(Soup):
             self.merge_all()
 
         if len(self.table.row_groups):
-            print("Row Groups")
+            self.insert_all_rowgroups()
+
+    def insert_all_rowgroups(self):
+        # TODO: on each iteration it doesn't respect the original ordering of rows.
+        # What happens is that if we add a row in say 2, then the next attempt
+        # to add a row in 4 will add it early. Anyway, this needs to be resolved.
+        for rowgroup in self.table.row_groups:
+            self._insert_rowgroup(rowgroup)
+
+    def _insert_rowgroup(self, after_row, text=None):
+        row = self.rows[after_row]
+        attrs = {"colspan": len(row.select("td")), "class": "rowgroup"}
+        td = self.new_tag("td", attrs=attrs)
+        # TODO: to just keep the height of the row correct
+        # TODO: this isn't a great solution
+        td.string = "⠀" if not text else text
+        row_group = self.new_tag("tr")
+        row_group.append(td)
+        row.insert_after(row_group)
 
     def merge_all(self):
         for cells in self.table.merge_operations:
-            self.merge(cells)
+            self._merge(cells)
 
-    def merge(self, cells):
+    def _merge(self, cells):
         # temporary check to tell the user we only support merging rows for now
         i = None
         for cell in cells:
