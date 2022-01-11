@@ -16,6 +16,17 @@ Goals:
 Currently supported export formats:
 - HTML
 
+## Installation
+
+The repo is installable by `pip` using the following command:
+
+```
+pip install git+ssh://git@github.com/finnkauski/tisch.git@main
+```
+
+**Note:** The hope would be to publish this to PyPI as soon as it has been properly tested, wrapped up
+and ready to be shared.
+
 ## Example
 
 ```python
