@@ -39,6 +39,9 @@ class Table:
     def add_source(self, text):
         self.source = text
 
+    def add_footer(self, text):
+        self.source = text
+
     def add_title(self, text):
         self.title = text
 
@@ -72,6 +75,9 @@ class Table:
         # TODO: can add a state tracker to make sure that whenever a variable
         # is changed, only then it rerenders.
         return HTMLExporter(self)
+
+    def _repr_html_(self):
+        return HTMLExporter(self).get_html()
 
     def __repr__(self):
         string = f"""Table:
