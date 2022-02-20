@@ -17,6 +17,9 @@ class HTMLExporter(Exporter):
         with open(filepath, "w+") as handle:
             handle.write(self.tsoup.prettify())
 
+    def get_html(self):
+        return self.tsoup.prettify()
+
 
 class TableSoup(Soup):
     def __init__(self, table):
